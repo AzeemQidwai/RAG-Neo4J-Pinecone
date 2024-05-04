@@ -23,8 +23,8 @@ def character(txt_doc):
     chunk_size = 800,
     chunk_overlap = 50 #always less than chunk size
     )
-    splits = text_splitter.split_text(txt_doc)
-    return splits
+    characters = text_splitter.split_text(txt_doc)
+    return characters
 
 
 def sentence(txt_doc):
@@ -33,7 +33,7 @@ def sentence(txt_doc):
     return sentences
 
 
-def chunk_text_by_paragraphs(text):
+def paragraphs(text):
     paragraphs = text.split('\n\n')  # Assuming paragraphs are separated by two newlines
     return paragraphs
 
