@@ -5,6 +5,8 @@ import together
 import os
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
+from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from Chunkers_utils import 
 
 # Load environment variables from .env file
 load_dotenv('.env')
@@ -19,6 +21,9 @@ togetherai_api_key = os.getenv("TOGETHER_API_KEY")
 neo4j_username = os.getenv("NEO4J_USERNAME")
 neo4j_password = os.getenv("NEO4J_PASSWORD")
 neo4j_uri = os.getenv("NEO4J_URI")
+
+chunker = 'recursive'  #recursive, character, sentence, paragraphs
+embeddingtype = 'openai' #openai, HF, gpt4all
 
 
 
