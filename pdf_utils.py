@@ -33,5 +33,11 @@ def pdfloader(pdf_path):
     return text
 
 
+# loader = PyPDFLoader("source/Constitution.pdf")
+# pages = loader.load_and_split()
 
+# text = pdfloader("source/Constitution.pdf")
+
+# with open('source/Constitution.txt', 'a') as file:
+#     file.write(text)
 

@@ -1,9 +1,13 @@
 #pip install nltk
+#pip install --quiet langchain_experimental langchain_openai
+
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.text_splitter import CharacterTextSplitter
+from langchain_text_splitters import TokenTextSplitter
 import nltk
 from nltk.tokenize import sent_tokenize
-from langchain.text_splitter import SemanticChunker
+from langchain_experimental.text_splitter import SemanticChunker
 from langchain.embeddings import GPT4AllEmbeddings
 
 def recursive(txt_doc):
