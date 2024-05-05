@@ -78,6 +78,8 @@ questions = data['question']
 
 #### RETRIEVAL & GENERATION####
 
+
+question_responses = {}
 ##Question embeddings
 for question in questions:
     if embeddingtype == 'openai':
@@ -92,46 +94,47 @@ for question in questions:
 
     ##Return Context##
 
-    retreived_content = filter_matching_docs(q_embedding, 3, get_text = True)
-    #print(f"Retreived content: {retreived_content}")
+    retrieved_content = filter_matching_docs(q_embedding, 3, get_text = True)
+    #print(f"Retreived content: {retrieved_content}")
 
     ##Creating prompt##
 
     prompt = f"""
     You are an AI assistant that is expert in Pakistan Constitution.
     Based on the following CONTEXT: \n\n
-    {retreived_content}
+    {retrieved_content}
     Please provide a detailed answer to the question: {question}.
     Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
     If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database. 
     """
 
-
     #QA WITH LLM#
+    response = infer_gpt4(prompt=prompt)
 
-    Response = infer_gpt4(prompt=prompt)
-    print(Response)
+    # Store retrieved content and response in dictionary
+    question_responses[question] = {
+        'retrieved_content': retrieved_content,
+        'response': response
+    }
+    print(response)
 
 
-# SAVE OUTPUT TO JSON
-def save_to_json(json_file):
+def save_to_json(question_responses, json_output_file):
+    # Create a list to hold the results in the required structure
+    results = {"questions": [], "answers": [], "contexts": []}
+
+    # Iterate through the question_responses dictionary
+    for question, data in question_responses.items():
+        results["questions"].append(question)
+        results["answers"].append(data['response'])
+        results["contexts"].append(data['retrieved_content'])
     
-    # List to hold the results
-    results = {"question": [], "answer": [], "context": []}
-
-    # Iterate through the list of questions
-    for question in data["question"]:
-        results["question"].append(question)
-        results["answer"].append(Response)
-        results["context"].append(retreived_content)
-    
-    # Write results to a JSON file
+    # Write the results to a JSON file
     with open(json_output_file, 'w') as file:
         json.dump(results, file, indent=4)
-
 
 # Output JSON file path
 json_output_file = 'output/qa_results_pc.json'
 
 # Execute the function
-save_to_json(json_output_file)
+save_to_json(question_responses, json_output_file)
