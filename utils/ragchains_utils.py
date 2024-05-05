@@ -77,3 +77,15 @@ def ragchain2(user_question: str, context: List[str]):
 
     print("\nAI response:.... \n")
     return chain.invoke(user_question)
+
+
+# def ragchain3(retriever, user_question):
+#     qa_chain = ConversationalRetrievalChain.from_llm(
+#         llm=OpenAIChat(openai_api_key=st.session_state.openai_api_key),
+#         retriever=retriever,
+#         return_source_documents=True,
+#     )
+#     result = qa_chain({'question': user_question, 'chat_history': st.session_state.messages})
+#     result = result['answer']
+#     st.session_state.messages.append((user_question, result))
+#     return result

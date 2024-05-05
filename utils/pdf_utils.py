@@ -29,14 +29,14 @@ from langchain_community.document_loaders import PyPDFLoader
 def pdfloader(pdf_path):
     loader = PyPDFLoader(pdf_path)
     pages = loader.load_and_split()
-    text = "".join([page.page_content for page in pages])
-    return text
+    return pages
 
 
 # loader = PyPDFLoader("source/Constitution.pdf")
 # pages = loader.load_and_split()
 
-# text = pdfloader("source/Constitution.pdf")
+#text = pdfloader("../source/Constitution.pdf")
+
 
 # with open('source/Constitution.txt', 'a') as file:
 #     file.write(text)
