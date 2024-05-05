@@ -19,7 +19,7 @@ from embeddings_utils import get_openai_embedding, generate_huggingface_embeddin
 from LoadingData_Pinecone import upload_to_pinecone
 from LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
 
-
+import json
 import os
 from dotenv import load_dotenv
 
@@ -34,15 +34,17 @@ pinecone_env = os.getenv("Pinecone_ENV")
 pinecone_index = os.getenv("Pinecone_INDEX")
 
 
+
 #Select Options
 chunker = 'recursive'  #recursive, character, sentence, paragraphs
 embeddingtype = 'openai' #openai, HF, gpt4all
-question =""
+
 
 ###INDEXING###
 
 ## Load pdf Documents
 text = pdfloader('source/Constitution')
+
 
 
 # Creates Chunks
@@ -59,7 +61,21 @@ else:
 ## Loading data to Pinecone
 upload_to_pinecone('Constitution', chunks, embeddingtype)
 
+#QuestionEmbeddings
+
+##load questions
+# Path to the JSON file
+file_path = 'extra/test2.json'
+
+# Open the file and load the data
+with open(file_path, 'r') as file:
+    data = json.load(file)
+
+print(data)
+question =""
+
 ##Question embeddings
+
 if embeddingtype == 'openai':
     query_embeds = get_openai_embedding(question)
 elif embeddingtype == 'HF':
@@ -140,3 +156,29 @@ If the responses are irrelevant to the question then respond by saying that I co
 
 Response = infer_gpt4(prompt=prompt)
 
+
+# SAVE OUTPUT TO JSON
+def save_to_json(json_file):
+    # Read the JSON file
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+    
+    # List to hold the results
+    results = {"question": [], "answer": [], "context": []}
+
+    # Iterate through the list of questions
+    for question in data["question"]:
+        results["question"].append(question)
+        results["answer"].append(Response)
+        results["context"].append(retreived_content)
+    
+    # Write results to a JSON file
+    with open(json_output_file, 'w') as file:
+        json.dump(results, file, indent=4)
+
+
+# Output JSON file path
+json_output_file = 'output/qa_results_pc.json'
+
+# Execute the function
+save_to_json(json_output_file)
