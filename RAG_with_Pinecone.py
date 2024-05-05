@@ -1,7 +1,6 @@
 #pip install python-dotenv
 #pip install -q pinecone-client
 #pip install --upgrade -q pinecone-client
-#pip install --quiet langchain_experimental langchain_openai
 
 
 from langchain import hub
