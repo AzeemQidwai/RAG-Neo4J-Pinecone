@@ -1,12 +1,17 @@
 #pip install python-dotenv
-import bs4
+#pip install -q pinecone-client
+#pip install --upgrade -q pinecone-client
+
+
 from langchain import hub
-from langchain_community.document_loaders import WebBaseLoader
+import hashlib
+from typing import List
+import pinecone
+from pinecone import Pinecone
 from langchain_community.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.prompts import ChatPromptTemplate
+from langchain.docstore.document import Document
 from langchain.llms import OpenAI
 from pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
 from Chunkers_utils import recursive, character, sentence, paragraphs
@@ -32,58 +37,42 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 #Select Options
 chunker = 'recursive'  #recursive, character, sentence, paragraphs
 embeddingtype = 'openai' #openai, HF, gpt4all
+question =""
 
+###INDEXING###
 
-prompt = f"""
-Based on the following information:\n\n
-1. {context}\n\n
-2. {response2}\n\n
-3. {response3}\n\n
-Please provide a detailed answer to the question: {question}.
-Your answer should integrate the essence of all three responses, providing a unified answer that leverages the \
-diverse perspectives or data points provided by three responses. \
-If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database. 
-"""
-
-
-
-# Load pdf Documents
-text = pdfloader('')
+## Load pdf Documents
+text = pdfloader('source/Constitution')
 
 
 # Creates Chunks
+if chunker == 'recursive':
+    chunks = recursive(text)
+elif chunker == 'character':
+    chunks = character(text)
+elif chunker == 'sentence':
+    chunks = sentence(text)
+else:
+    chunks = paragraphs(text)
 
 
-# Create embeddings
+## Loading data to Pinecone
+upload_to_pinecone('Constitution', chunks, embeddingtype)
+
+##Question embeddings
+if embeddingtype == 'openai':
+    query_embeds = get_openai_embedding(question)
+elif embeddingtype == 'HF':
+    query_embeds = generate_huggingface_embeddings(question)
+else:
+    query_embeds = generate_gpt4all(question)
 
 
+#### RETRIEVAL & GENERATION####
 
+##Return Context##
 
-# Prompt
-prompt = hub.pull("rlm/rag-prompt")
-
-# LLM
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
-
-# Post-processing
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
-
-# Chain
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
-
-# Question
-rag_chain.invoke("What is Task Decomposition?")
-
-
-#### RETRIEVAL and GENERATION ####
-
-def filter_matching_docs(question: str, top_chunks: int = 3, get_text: bool = False) -> List:
+def filter_matching_docs(query_embeds: str, top_chunks: int = 3, get_text: bool = False) -> List:
     """
     Semnatic search between user content and vector DB
 
@@ -97,9 +86,6 @@ def filter_matching_docs(question: str, top_chunks: int = 3, get_text: bool = Fa
     """
     
     index = os.getenv("Pinecone_INDEX")
-
-    question_embed_call = openai.embeddings.create(input = question ,model = MODEL)
-    query_embeds = question_embed_call.data[0].embedding
     response = index.query(query_embeds,top_k = top_chunks,include_metadata = True)
 
     #get the data out
@@ -132,35 +118,25 @@ def filter_matching_docs(question: str, top_chunks: int = 3, get_text: bool = Fa
     return filtered_data
 
 
-def QA_with_your_docs(user_question: str, text_list: List[str], chain_type: str = "stuff") -> str:
-    """
-    This is the main function to chat with the content you have
 
-    @param
-    user_question: question or context user wants to figure out
-    text: list of similar texts
-    chat_type: Type of chain run (stuff is cost effective)
+retreived_content = filter_matching_docs(query_embeds, 3, get_text = True)
+#print(f"Retreived content: {retreived_content}")
 
-    @return
-    answers from the LLM
-    """
-    llm = OpenAI(temperature=0, openai_api_key = os.environ['OPENAI_API_KEY'])
-    chain = load_qa_with_sources_chain(llm, chain_type = chain_type, verbose = False)
 
-    all_docs = []
-    for doc_content in text_list:
-        metadata = {}
-        doc_text = doc_content.get("text", "")
-        metadata["id"] = doc_content.get("id", "")
-        metadata["score"] = doc_content.get("score", "")
-        metadata["filename"] = doc_content.get("filename", "")
-        metadata["chunk"] = doc_content.get("chunk", "")
-        chunk_name = doc_content.get("filename", "UNKNOWN")
-        offset=", OFFSET="+str(doc_content.get("chunk","UNKNOWN"))
-        metadata["source"] = chunk_name + offset
-        all_docs.append(Document(page_content = doc_text, metadata = metadata))
 
-    chain_response = chain.run(input_documents = all_docs, question = user_question )
-    print(chain_response)
+##Creating prompt##
 
-    return chain_response
+prompt = f"""
+You are an AI assistant that is expert in Pakistan Constitution.
+Based on the following CONTEXT: \n\n
+{retreived_content}
+Please provide a detailed answer to the question: {question}.
+Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
+If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database. 
+"""
+
+
+#QA WITH LLM#
+
+Response = infer_gpt4(prompt=prompt)
+

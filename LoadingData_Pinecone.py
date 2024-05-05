@@ -9,8 +9,7 @@ import pinecone
 from pinecone import Pinecone
 import openai
 
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.llms import OpenAI
+
 from langchain.docstore.document import Document
 import os
 from dotenv import load_dotenv
@@ -31,7 +30,7 @@ pc.list_indexes()
 
 
 
-def upload_to_pinecone(text_document: str, file_name, chunker, embeddingtype) -> None:
+def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
     """
     Upload the text content to pinecone
 
@@ -45,16 +44,7 @@ def upload_to_pinecone(text_document: str, file_name, chunker, embeddingtype) ->
     None
     """
 
-    if chunker == 'recursive':
-        texts = recursive(text_document)
-    elif chunker == 'character':
-        texts = character(text_document)
-    elif chunker == 'sentence':
-        texts = sentence(text_document)
-    else:
-        texts = paragraphs(text_document)
-
-    for index, sub_docs in enumerate(texts):
+    for index, sub_docs in enumerate(chunks):
         document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
         if embeddingtype == 'openai':
             embedding = get_openai_embedding(sub_docs.page_content)

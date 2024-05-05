@@ -2,6 +2,7 @@
 #pip install pypdf
 #pip install PyPDF2
 
+
 import PyPDF2
 def pdf_to_text(uploaded_file):
 
