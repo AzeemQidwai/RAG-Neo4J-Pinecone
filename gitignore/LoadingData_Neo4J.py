@@ -16,8 +16,8 @@ from neo4j import GraphDatabase
 
 import os
 from dotenv import load_dotenv
-from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
-from Chunkers_utils import recursive, character, sentence, paragraphs
+from utils.embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.Chunkers_utils import recursive, character, sentence, paragraphs
 
 # Load environment variables from .env file
 load_dotenv('.env')

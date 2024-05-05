@@ -1,6 +1,7 @@
 #pip install python-dotenv
 #pip install -q pinecone-client
 #pip install --upgrade -q pinecone-client
+#pip install utils
 
 
 from langchain import hub
@@ -13,11 +14,11 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain.docstore.document import Document
 from langchain.llms import OpenAI
-from pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
-from Chunkers_utils import recursive, character, sentence, paragraphs
-from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
+from utils.Chunkers_utils import recursive, character, sentence, paragraphs, semantic
+from utils.embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 from LoadingData_Pinecone import upload_to_pinecone
-from LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
+from utils.LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
 
 import json
 import os
@@ -43,7 +44,7 @@ embeddingtype = 'openai' #openai, HF, gpt4all
 ###INDEXING###
 
 ## Load pdf Documents
-text = pdfloader('source/Constitution')
+text = pdfloader('source/Constitution.pdf')
 
 
 
@@ -54,6 +55,8 @@ elif chunker == 'character':
     chunks = character(text)
 elif chunker == 'sentence':
     chunks = sentence(text)
+elif chunker == 'semantic':
+    chunks = semantic(text)
 else:
     chunks = paragraphs(text)
 
