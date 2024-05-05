@@ -12,13 +12,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_text_splitters import TokenTextSplitter
 from neo4j.exceptions import ClientError
+from neo4j import GraphDatabase
 
 import os
 from dotenv import load_dotenv
 from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 from Chunkers_utils import recursive, character, sentence, paragraphs
-
-
 
 # Load environment variables from .env file
 load_dotenv('.env')
@@ -29,27 +28,65 @@ neo4j_username = os.getenv("NEO4J_USERNAME")
 neo4j_password = os.getenv("NEO4J_PASSWORD")
 neo4j_url = os.getenv("NEO4J_URL")
 neo4j_db = os.getenv("NEO4J_DB")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+from langchain_community.document_loaders import PyPDFLoader
+
+# Load the text file
+  # Ensures loader uses metadata, adjust according to actual implementation
+
+
+pdfpath="source/Constitution.pdf"
+loader = PyPDFLoader(pdfpath)   
+documents = loader.load()
+
+graph = Neo4jGraph(
+    url=neo4j_url, username=neo4j_username, password=neo4j_password
+    )
+parent_documents = documents 
+
+for i, parent in enumerate(parent_documents):
+    # Create child splits from each parent page if necessary
+    child_documents = child_splitter.split_documents([parent])
+    page_metadata = parent.metadata  # Access metadata, adjust according to your data structure
+    params = {
+        "parent_text": parent.page_content,
+        "parent_id": f"{page_metadata['source']}-{page_metadata['page']}",  # Unique ID using source and page number
+        "parent_embedding": embeddings.embed_query(parent.page_content),
+        "children": [
+            {
+                "text": c.page_content,
+                "id": f"{page_metadata['source']}-{page_metadata['page']}-{ic}",
+                "embedding": embeddings.embed_query(c.page_content),
+            }
+            for ic, c in enumerate(child_documents)
+        ],
+    }
+    # Ingest data with updated query using metadata in IDs
+    graph.query(
+        """
+        MERGE (p:Parent {id: $parent_id})
+        SET p.text = $parent_text
+        WITH p
+        CALL db.create.setVectorProperty(p, 'embedding', $parent_embedding)
+        YIELD node
+        WITH p 
+        UNWIND $children AS child
+        MERGE (c:Child {id: child.id})
+        SET c.text = child.text
+        MERGE (c)<-[:HAS_CHILD]-(p)
+        WITH c, child
+        CALL db.create.setVectorProperty(c, 'embedding', child.embedding)
+        YIELD node
+        RETURN count(*)
+        """,
+        params,
+    )
 
 
 
-# Global constants
-VECTOR_INDEX_NAME = 'RagCP'
-VECTOR_NODE_LABEL = 'Chunk'
-VECTOR_SOURCE_PROPERTY = 'text'
-VECTOR_EMBEDDING_PROPERTY = 'textEmbedding'
 
 
-from neo4j import GraphDatabase
-
-for index, sub_docs in enumerate(chunks):
-    document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
-    if embeddingtype == 'openai':
-        embedding = get_openai_embedding(sub_docs.page_content)
-    elif embeddingtype == 'HF':
-        embedding = generate_huggingface_embeddings(sub_docs.page_content)
-    else:
-        embedding = generate_gpt4all(sub_docs.page_content)
-    
 
 
 
