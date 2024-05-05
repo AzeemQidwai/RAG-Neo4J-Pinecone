@@ -13,20 +13,55 @@ import openai
 import os
 from dotenv import load_dotenv
 from utils import embeddings_utils, Chunkers_utils, pdf_utils, LLM_utils
-from utils.embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.embeddings_utils import  lc_openai_embedding, get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 from utils.Chunkers_utils import recursive, character, sentence, paragraphs
 
 
 
 load_dotenv('.env')
 
+
 pinecone_api_key = os.getenv("Pinecone_API_KEY")
 pinecone_env = os.getenv("Pinecone_ENV")
 pinecone_index = os.getenv("Pinecone_INDEX")
 
 
-pc = Pinecone()
+pc = Pinecone(api_key=pinecone_api_key)
 pc.list_indexes()
+
+
+def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
+    """
+    Upload the text content to pinecone
+
+    @params
+    text_document: text content needs to upload
+    file_name: name of the filed to be included as metadata
+    chunk_type: chunk type to split the data
+    embeddingtype: type of embedding model
+
+    @return
+    None
+    """
+
+    for index, sub_docs in enumerate(chunks):
+        document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
+        if embeddingtype == 'openai':
+            embedding = lc_openai_embedding(sub_docs.page_content)
+        elif embeddingtype == 'HF':
+            embedding = generate_huggingface_embeddings(sub_docs.page_content)
+        else:
+            embedding = generate_gpt4all(sub_docs.page_content)
+
+
+        metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
+        pinecone_index.upsert([(document_hash.hexdigest(), embedding, metadata)])
+        print("{} ==> Done".format(index))
+
+    print("Done!")
+
+    return True
+
 
 # ##ONLY RUN IF YOU HAVEN'T CREATED THE INDEX ON PINECONE
 # #This represents the configuration used to deploy a pod-based index.
@@ -54,39 +89,3 @@ pc.list_indexes()
 # #     print('Done')
 # # else:
 # #     print(f'Index {index_name} does not exists!')
-
-
-
-def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
-    """
-    Upload the text content to pinecone
-
-    @params
-    text_document: text content needs to upload
-    file_name: name of the filed to be included as metadata
-    chunk_type: chunk type to split the data
-    embeddingtype: type of embedding model
-
-    @return
-    None
-    """
-
-    for index, sub_docs in enumerate(chunks):
-        document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
-        if embeddingtype == 'openai':
-            embedding = get_openai_embedding(sub_docs.page_content)
-        elif embeddingtype == 'HF':
-            embedding = generate_huggingface_embeddings(sub_docs.page_content)
-        else:
-            embedding = generate_gpt4all(sub_docs.page_content)
-
-
-        metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
-        pinecone_index.upsert([(document_hash.hexdigest(), embedding, metadata)])
-        print("{} ==> Done".format(index))
-
-    print("Done!")
-
-    return True
-
-

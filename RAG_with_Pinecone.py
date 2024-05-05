@@ -16,7 +16,7 @@ from langchain.docstore.document import Document
 from langchain.llms import OpenAI
 from utils.pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
 from utils.Chunkers_utils import recursive, character, sentence, paragraphs, semantic
-from utils.embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.embeddings_utils import  lc_openai_embedding, get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 from LoadingData_Pinecone import upload_to_pinecone
 from utils.LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
 
@@ -25,7 +25,7 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv('.env')
 
 ##API Keys
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -103,9 +103,8 @@ def filter_matching_docs(query_embeds: str, top_chunks: int = 3, get_text: bool 
     @return
     list of similar content
     """
-    
-    index = os.getenv("Pinecone_INDEX")
-    response = index.query(query_embeds,top_k = top_chunks,include_metadata = True)
+
+    response = pinecone_index.query(query_embeds,top_k = top_chunks,include_metadata = True)
 
     #get the data out
     filtered_data = []
