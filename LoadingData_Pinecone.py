@@ -13,7 +13,7 @@ import openai
 import os
 from dotenv import load_dotenv
 from utils import embeddings_utils, Chunkers_utils, pdf_utils, LLM_utils
-from utils.embeddings_utils import  lc_openai_embedding, get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.embeddings_utils import  lc_openai_embedding, openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 from utils.Chunkers_utils import recursive, character, sentence, paragraphs
 
 
@@ -28,6 +28,7 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 pc = Pinecone(api_key=pinecone_api_key)
 pc.list_indexes()
+pc_index = pc.Index(pinecone_index)
 
 
 def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
@@ -47,21 +48,67 @@ def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
     for index, sub_docs in enumerate(chunks):
         document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
         if embeddingtype == 'openai':
-            embedding = lc_openai_embedding(sub_docs.page_content)
+            embedding = openai_embedding(sub_docs.page_content)
         elif embeddingtype == 'HF':
             embedding = generate_huggingface_embeddings(sub_docs.page_content)
+        elif embeddingtype == 'langchain':
+            embedding = lc_openai_embedding(sub_docs.page_content)
         else:
             embedding = generate_gpt4all(sub_docs.page_content)
 
 
         metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
-        pinecone_index.upsert([(document_hash.hexdigest(), embedding, metadata)])
+        pc_index.upsert([(document_hash.hexdigest(), embedding, metadata)])
         print("{} ==> Done".format(index))
 
     print("Done!")
 
     return True
 
+
+def filter_matching_docs(query_embeds: str, top_chunks: int = 3, get_text: bool = False) -> List:
+    """
+    Semnatic search between user content and vector DB
+
+    @param
+    question: user question
+    top_chunks: number of most similar content ot be filtered
+    get_text: if True, return only the text not the document
+
+    @return
+    list of similar content
+    """
+
+    response = pc_index.query(vector=query_embeds, top_k=top_chunks, include_metadata=True)
+
+
+    #get the data out
+    filtered_data = []
+    filtered_text = []
+
+    for content in response["matches"]:
+        #save the meta data as a dictionary
+        info = {}
+        info["id"] = content.get("id", "")
+        info["score"] = content.get("score", "")
+        # get the saved metadat info
+        content_metadata = content.get("metadata","")
+        # combine it it info
+        info["filename"] = content_metadata.get("doc_name", "")
+        info["chunk"] = content_metadata.get("chunk", "")
+        info["text"] = content_metadata.get("text", "")
+        filtered_text.append(content_metadata.get("text", ""))
+
+        #append the data
+        filtered_data.append(info)
+
+    if get_text:
+        similar_text = " ".join([text for text in filtered_text])
+        #print(similar_text)
+        return similar_text
+
+    #print(filtered_data)
+    return filtered_data
 
 # ##ONLY RUN IF YOU HAVEN'T CREATED THE INDEX ON PINECONE
 # #This represents the configuration used to deploy a pod-based index.
