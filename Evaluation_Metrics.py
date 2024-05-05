@@ -43,16 +43,12 @@ score = evaluate(dataset)
 score.to_pandas()
 
 
-score1 = evaluate(dataset,metrics=[context_precision])
+score1 = evaluate(dataset,metrics=[answer_similarity, 
+                                   faithfulness, 
+                                   context_precision,
+                                   context_recall])
 score1.to_pandas()
 
-
-score2 = evaluate(dataset,metrics=[context_recall])
-score2.to_pandas()
-
-
-score3 = evaluate(dataset,metrics=[answer_similarity])
-score3.to_pandas()
 
 
 
