@@ -3,6 +3,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.text_splitter import CharacterTextSplitter
 import nltk
 from nltk.tokenize import sent_tokenize
+from langchain.text_splitter import SemanticChunker
+from langchain.embeddings import GPT4AllEmbeddings
 
 def recursive(txt_doc):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -36,6 +38,11 @@ def sentence(txt_doc):
 def paragraphs(text):
     paragraphs = text.split('\n\n')  # Assuming paragraphs are separated by two newlines
     return paragraphs
+
+def semantic(text):
+    semantic_splits = SemanticChunker(GPT4AllEmbeddings())
+    return semantic_splits
+
 
 
 
