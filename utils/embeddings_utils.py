@@ -16,23 +16,20 @@ load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 HF_Token = os.getenv("Huggingface_TOKEN")
 
-def get_openai_embedding(text):
-	# Embed a line of text
-	response = openai.Embedding.create(
-        model= "text-similarity-babbage-001", ##you can use other models 1. `text-similarity-babbage-001`, `text-similarity-curie-001`, `text-embedding-ada-002`
-        openai_api_key = openai_api_key
-        )
-	# Extract the AI output embedding as a list of floats
-	embedding = response["data"][0]["embedding"] 
-	return embedding
 
 def lc_openai_embedding(text):
-     model="text-embedding-3-large"
+     model="text-embedding-3-large" ## 3072 dimension embeddings
      embeddings = OpenAIEmbeddings(
             model = model,
             openai_api_type=openai_api_key).embed_query(text)
      return embeddings
-            
+
+def openai_embedding(text):
+    model="text-embedding-ada-002"
+    embeddings = OpenAIEmbeddings(
+        model = model,
+        openai_api_type=openai_api_key).embed_query(text)
+    return embeddings           
 
 
 def generate_huggingface_embeddings(text):
@@ -51,6 +48,19 @@ def generate_huggingface_embeddings(text):
 def generate_gpt4all(text):
    embeddings = GPT4AllEmbeddings().embed_query(text)
    return embeddings
+
+
+# def get_openai_embedding(text):
+# 	# Embed a line of text
+# 	response = openai.Embedding.create(
+#         model= "text-similarity-babbage-001", ##you can use other models 1. `text-similarity-babbage-001`, `text-similarity-curie-001`, `text-embedding-ada-002`
+#         openai_api_key = openai_api_key
+#         )
+# 	# Extract the AI output embedding as a list of floats
+# 	embedding = response["data"][0]["embedding"] 
+# 	return embedding
+
+
 
 
 # with open('corpus.txt', 'r', encoding='utf-8') as file:
