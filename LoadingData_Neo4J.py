@@ -11,6 +11,9 @@ from langchain.graphs.graph_document import (
     GraphDocument,
 )
 from langchain_community.graphs import Neo4jGraph
+from typing import List, Dict, Any, Optional
+from langchain.pydantic_v1 import Field, BaseModel
+from langchain.document_loaders import PyPDFLoader, DirectoryLoader
 
 # Load environment variables from .env file
 load_dotenv('.env')

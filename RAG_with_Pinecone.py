@@ -1,4 +1,19 @@
 #pip install python-dotenv
+import bs4
+from langchain import hub
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.vectorstores import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.llms import OpenAI
+from pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
+from Chunkers_utils import recursive, character, sentence, paragraphs
+from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from LoadingData_Pinecone import upload_to_pinecone
+from LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
+
 
 import os
 from dotenv import load_dotenv
@@ -6,18 +21,17 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Access OpenAI API key
+##API Keys
 openai_api_key = os.getenv("OPENAI_API_KEY")
-
-# Access TogetherAI API key
 togetherai_api_key = os.getenv("TogetherAI_API_KEY")
-
-
 pinecone_api_key = os.getenv("Pinecone_API_KEY")
 pinecone_env = os.getenv("Pinecone_ENV")
 pinecone_index = os.getenv("Pinecone_INDEX")
 
 
+#Select Options
+chunker = 'recursive'  #recursive, character, sentence, paragraphs
+embeddingtype = 'openai' #openai, HF, gpt4all
 
 
 prompt = f"""
@@ -32,34 +46,42 @@ If the responses are irrelevant to the question then respond by saying that I co
 """
 
 
-import bs4
-from langchain import hub
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_community.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+
+# Load pdf Documents
+text = pdfloader('')
 
 
-#### INDEXING ####
+# Creates Chunks
 
+
+# Create embeddings
 
 
 
 
+# Prompt
+prompt = hub.pull("rlm/rag-prompt")
+
+# LLM
+llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+
+# Post-processing
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# Chain
+rag_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# Question
+rag_chain.invoke("What is Task Decomposition?")
 
 
-
-
-
-
-
-
-
-
-
-
+#### RETRIEVAL and GENERATION ####
 
 def filter_matching_docs(question: str, top_chunks: int = 3, get_text: bool = False) -> List:
     """
@@ -142,39 +164,3 @@ def QA_with_your_docs(user_question: str, text_list: List[str], chain_type: str 
     print(chain_response)
 
     return chain_response
-
-# Load pdf Documents
-
-
-
-# Creates Chunks
-
-
-# Create embeddings
-vectorstore = Chroma.from_documents(documents=splits, 
-                                    embedding=OpenAIEmbeddings())
-
-retriever = vectorstore.as_retriever()
-
-#### RETRIEVAL and GENERATION ####
-
-# Prompt
-prompt = hub.pull("rlm/rag-prompt")
-
-# LLM
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
-
-# Post-processing
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
-
-# Chain
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
-
-# Question
-rag_chain.invoke("What is Task Decomposition?")
