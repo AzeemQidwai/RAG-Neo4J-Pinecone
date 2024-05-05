@@ -41,10 +41,10 @@ def generate_gpt4all(text):
    return embeddings
 
 
-with open('corpus.txt', 'r', encoding='utf-8') as file:
-    content = file.read()
-    print(content)
+# with open('corpus.txt', 'r', encoding='utf-8') as file:
+#     content = file.read()
+#     print(content)
 
-get_openai_embedding(content)
+# get_openai_embedding(content)
 
-generate_gpt4all(content)
+# generate_gpt4all(content)

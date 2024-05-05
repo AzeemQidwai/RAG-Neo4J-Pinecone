@@ -5,8 +5,8 @@ import together
 import os
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
-from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
-from Chunkers_utils import 
+from utils.embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.Chunkers_utils import 
 
 # Load environment variables from .env file
 load_dotenv('.env')
