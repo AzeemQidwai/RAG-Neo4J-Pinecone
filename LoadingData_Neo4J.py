@@ -5,7 +5,11 @@ from dotenv import load_dotenv
 import os
 import logging
 from retry import retry
-from neo4j import GraphDatabase
+from langchain.graphs.graph_document import (
+    Node as BaseNode,
+    Relationship as BaseRelationship,
+    GraphDocument,
+)
 from langchain_community.graphs import Neo4jGraph
 
 # Load environment variables from .env file
@@ -16,6 +20,7 @@ load_dotenv('.env')
 neo4j_username = os.getenv("NEO4J_USERNAME")
 neo4j_password = os.getenv("NEO4J_PASSWORD")
 neo4j_url = os.getenv("NEO4J_URL")
+neo4j_db = os.getenv("NEO4J_DB")
 
 # Configure the logging module
 logging.basicConfig(
@@ -42,8 +47,10 @@ def upload_to_neo4j():
     None
     """
     # Connect to the knowledge graph instance using LangChain
-    kg = Neo4jGraph(
-        url=neo4j_url, username=neo4j_username, password=neo4j_username, database=NEO4J_DATABASE
+    graph = Neo4jGraph(
+        url=neo4j_url, 
+        username=neo4j_username, 
+        password=neo4j_username
         )
     
 
