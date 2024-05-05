@@ -2,15 +2,13 @@
 #pip install --upgrade -q pinecone-client
 
 import hashlib
+from pinecone import PodSpec
 import os
 import uuid
 from typing import List
 import pinecone
 from pinecone import Pinecone
 import openai
-
-
-from langchain.docstore.document import Document
 import os
 from dotenv import load_dotenv
 from embeddings_utils import get_openai_embedding, generate_huggingface_embeddings, generate_gpt4all
@@ -27,6 +25,33 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 pc = Pinecone()
 pc.list_indexes()
+
+##ONLY RUN IF YOU HAVEN'T CREATED THE INDEX ON PINECONE
+#This represents the configuration used to deploy a pod-based index.
+index_name = 'RagCP'                             # create a new index called "langchain"
+
+if index_name not in pc.list_indexes().names():
+    print(f'Creating index {index_name}')
+    pc.create_index(
+        name = index_name,
+        dimension = 1536,  #This is the default dimension for text-embedding-3-small(one of the recommended OpenAI's embedding models.)
+        metric = 'cosine',  # This is the algorithm used to calculate the distance between vectors.
+        spec = PodSpec(
+            environment = 'gcp-starter'
+        ) 
+    )
+    print('Index created! :)')
+else:
+     print(f'Index {index_name} already exists!')
+
+
+# index_name = 'RagCP'
+# if index_name in pc.list_indexes().names():
+#     print(f'Deleting index {index_name} ...')
+#     pc.delete_index(index_name)
+#     print('Done')
+# else:
+#     print(f'Index {index_name} does not exists!')
 
 
 
