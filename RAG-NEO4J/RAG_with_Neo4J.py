@@ -1,10 +1,10 @@
 #pip install python-dotenv
+
 import openai
 from openai import OpenAI
-import together
 import os
 from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
+
 
 
 # Load environment variables from .env file
@@ -20,7 +20,7 @@ embeddingtype = 'openai' #openai, HF, gpt4all
 from chain import chain
 
 if __name__ == "__main__":
-    original_query = "What is the plot of the Dune?"
+    original_query = "In what scenarios is the delay of general elections acceptable?"
     print(  # noqa: T201
         chain.invoke(
             {"question": original_query},

@@ -13,10 +13,13 @@ from retrievers import (
     typical_rag,
 )
 
-template = """Answer the question based only on the following context:
-{context}
-
-Question: {question}
+template = """
+    You are an AI assistant that is expert in Pakistan Constitution.
+    Answer the question based only on the following CONTEXT: \n\n
+    {retrieved_content} \n\n
+    Question: {question} \n\n
+    Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
+    If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database.
 """
 prompt = ChatPromptTemplate.from_template(template)
 
