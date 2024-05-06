@@ -11,6 +11,8 @@ from langchain_community.embeddings.openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 import sentence_transformers
 
+#Langchain Embeddings info at https://js.langchain.com/docs/integrations/text_embedding
+
 # Load environment variables from .env file
 load_dotenv()
 
