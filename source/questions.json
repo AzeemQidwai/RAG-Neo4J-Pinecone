@@ -1,0 +1,13 @@
+{
+    "question": [
+        "How long is the term of office for the President in the Federation of Pakistan?", 
+        "Which country's constitution is being discussed in the text?", 
+        "How many members can the Cabinet of the Provincial Assembly have according to the Constitution?"],
+
+    "ground_truth": [
+        "President of Pakistan term of office is 5 years",
+        "Islamic Republic of Pakistan",
+        ""
+    ]
+
+}
