@@ -29,7 +29,8 @@ load_dotenv('.env')
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 # Path to the JSON file
-file_path = 'extra/test2.json'
+file_path = 'output/qa_results_pc.json'
+#file_path = 'output/qa_results_neo4j.json'
 
 # Open the file and load the data
 with open(file_path, 'r') as file:
