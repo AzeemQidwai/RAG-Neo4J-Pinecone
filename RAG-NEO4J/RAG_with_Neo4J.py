@@ -13,7 +13,7 @@ load_dotenv('.env')
 # Access OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-embeddingtype = 'openai' #openai, HF, gpt4all
+
 
 
 

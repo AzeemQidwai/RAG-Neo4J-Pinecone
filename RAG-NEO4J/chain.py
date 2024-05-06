@@ -13,17 +13,19 @@ from retrievers import (
     typical_rag,
 )
 
+
+
+
 template = """
-    You are an AI assistant that is expert in Pakistan Constitution.
-    Answer the question based only on the following CONTEXT: \n\n
-    {retrieved_content} \n\n
-    Question: {question} \n\n
-    Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
-    If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database.
+Answer the question based only on the following CONTEXT:
+{context}
+
+Question: {question}
+
+Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
+If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database.
 """
 prompt = ChatPromptTemplate.from_template(template)
-
-model = ChatOpenAI()
 
 retriever = typical_rag.as_retriever().configurable_alternatives(
     ConfigurableField(id="strategy"),
@@ -41,7 +43,7 @@ chain = (
         }
     )
     | prompt
-    | model
+    | llm
     | StrOutputParser()
 )
 
