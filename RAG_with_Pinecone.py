@@ -37,7 +37,7 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 
 #Select Options
-chunker = 'recursive'  #recursive, character, sentence, paragraphs
+chunker = 'recursive'  #recursive, character, sentence, paragraphs, semantic
 embeddingtype = 'openai' #openai, HF, gpt4all, 'langchain'
 
 
@@ -102,8 +102,8 @@ for question in questions:
     prompt = f"""
     You are an AI assistant that is expert in Pakistan Constitution.
     Based on the following CONTEXT: \n\n
-    {retrieved_content}
-    Please provide a detailed answer to the question: {question}.
+    {retrieved_content} \n\n
+    Please provide a detailed answer to the question: {question}.\n\n
     Please be truthful. Keep in mind, you will lose the job, if you answer out of CONTEXT questions.
     If the responses are irrelevant to the question then respond by saying that I couldn't find a good response to your query in the database. 
     """
