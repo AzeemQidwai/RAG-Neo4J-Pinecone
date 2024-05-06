@@ -9,6 +9,15 @@ import nltk
 from nltk.tokenize import sent_tokenize
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain.embeddings import GPT4AllEmbeddings
+from langchain_community.embeddings.openai import OpenAIEmbeddings
+from dotenv import load_dotenv
+
+
+
+# Load environment variables from .env file
+load_dotenv('.env')
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 def recursive(txt_doc):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -44,8 +53,11 @@ def paragraphs(text):
     return paragraphs
 
 def semantic(text):
-    semantic_splits = SemanticChunker(GPT4AllEmbeddings())
-    return semantic_splits
+    if not isinstance(text, str):
+        raise TypeError("The 'text' argument must be a string.")
+    semantic_splits = SemanticChunker(OpenAIEmbeddings(openai_api_key=openai_api_key))
+    docs = semantic_splits.create_documents([text])
+    return docs
 
 
 
