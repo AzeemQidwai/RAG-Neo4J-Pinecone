@@ -37,14 +37,17 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 
 #Select Options
-chunker = 'sentence'  #recursive, character, sentence, paragraphs, semantic
-embeddingtype = 'openai' #openai, HF, spacy, 'langchain', empty string will initiate gpt4all embeddings
+retrieval_method = 'cosine' #What you defined at the time of pinecone creation
+chunker = 'semantic' ##recursive, semantic, sentence, character, paragraph
+embeddingtype = 'langchain'  #openai, HF, langchain, spacy, empty string will invoke gpt4all
+llmtype = 'gpt4' #llama2, llama3, Qwen, empty string will invoke Mixtral
+embedding_dimension = 1536  ##change to 384=gpt4all embedding,
 
 
 ###INDEXING###
 
 ## Load pdf Documents
-text = pdfloader('source/Constitution.pdf')
+text = pdfloader('input/Constitution.pdf')
 
 # Creates Chunks
 if chunker == 'recursive':
@@ -136,7 +139,7 @@ def save_to_json(question_responses, json_output_file):
         json.dump(results, file, indent=4)
 
 # Output JSON file path
-json_output_file = 'output/qa_results_pc.json'
+json_output_file = f'output/qa_results_pc_{embeddingtype}_{retrieval_method}_{chunker }_{llmtype}.json'    #replace with your directory
 
 # Execute the function
 save_to_json(question_responses, json_output_file)
