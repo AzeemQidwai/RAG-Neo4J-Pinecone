@@ -16,7 +16,7 @@ from langchain.docstore.document import Document
 from langchain.llms import OpenAI
 from utils.pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
 from utils.Chunkers_utils import recursive, character, sentence, paragraphs, semantic
-from utils.embeddings_utils import  lc_openai_embedding, openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+from utils.embeddings_utils import  lc_openai_embedding, openai_embedding, spacy_embedding, generate_huggingface_embeddings, generate_gpt4all
 from LoadingData_Pinecone import upload_to_pinecone, filter_matching_docs
 from utils.LLM_utils import infer_Mixtral, infer_llama3, infer_llama2, infer_Qwen, infer_gpt4
 
@@ -37,14 +37,17 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 
 #Select Options
-chunker = 'recursive'  #recursive, character, sentence, paragraphs, semantic
-embeddingtype = 'openai' #openai, HF, gpt4all, 'langchain'
+retrieval_method = 'cosine' #What you defined at the time of pinecone creation
+chunker = 'semantic' ##recursive, semantic, sentence, character, paragraph
+embeddingtype = 'langchain'  #openai, HF, langchain, spacy, empty string will invoke gpt4all
+llmtype = 'gpt4' #llama2, llama3, Qwen, empty string will invoke Mixtral
+embedding_dimension = 1536  ##change to 384=gpt4all embedding,
 
 
 ###INDEXING###
 
 ## Load pdf Documents
-text = pdfloader('source/Constitution.pdf')
+text = pdfloader('input/Constitution.pdf')
 
 # Creates Chunks
 if chunker == 'recursive':
@@ -83,13 +86,15 @@ question_responses = {}
 ##Question embeddings
 for question in questions:
     if embeddingtype == 'openai':
-        q_embedding = openai_embedding(question)
+        q_embedding = openai_embedding().embed_query(question) ## default 1536 dimension embeddings
     elif embeddingtype == 'HF':
-        q_embedding = generate_huggingface_embeddings(question)
+        q_embedding = generate_huggingface_embeddings().embed_query(question) ## default 768 dimension embeddings
     elif embeddingtype == 'langchain':
-        q_embedding = lc_openai_embedding(question)
+        q_embedding = lc_openai_embedding().embed_query(question) ## default 3072 dimension embeddings
+    elif embeddingtype == 'spacy':
+        q_embedding = spacy_embedding().embed_query(question)  ## default 96 dimension embeddings
     else:
-        q_embedding = generate_gpt4all(question)
+        q_embedding = generate_gpt4all().embed_query(question) # default 384 dimension embeddings
 
 
     ##Return Context##
@@ -134,7 +139,7 @@ def save_to_json(question_responses, json_output_file):
         json.dump(results, file, indent=4)
 
 # Output JSON file path
-json_output_file = 'output/qa_results_pc.json'
+json_output_file = f'output/qa_results_pc_{embeddingtype}_{retrieval_method}_{chunker }_{llmtype}.json'    #replace with your directory
 
 # Execute the function
 save_to_json(question_responses, json_output_file)
