@@ -13,8 +13,8 @@ import openai
 import os
 from dotenv import load_dotenv
 from utils import embeddings_utils, Chunkers_utils, pdf_utils, LLM_utils
-from utils.embeddings_utils import  lc_openai_embedding, openai_embedding, generate_huggingface_embeddings, generate_gpt4all
-from utils.Chunkers_utils import recursive, character, sentence, paragraphs
+from utils.embeddings_utils import  lc_openai_embedding, spacy_embedding, openai_embedding, generate_huggingface_embeddings, generate_gpt4all
+
 
 
 
@@ -48,13 +48,15 @@ def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
     for index, sub_docs in enumerate(chunks):
         document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
         if embeddingtype == 'openai':
-            embedding = openai_embedding(sub_docs.page_content)
+            embedding = openai_embedding().embed_documents(sub_docs.page_content)  ## default 1536 dimension embeddings
         elif embeddingtype == 'HF':
-            embedding = generate_huggingface_embeddings(sub_docs.page_content)
+            embedding = generate_huggingface_embeddings().embed_documents(sub_docs.page_content)  ## default 768 dimension embeddings
         elif embeddingtype == 'langchain':
-            embedding = lc_openai_embedding(sub_docs.page_content)
+            embedding = lc_openai_embedding().embed_documents(sub_docs.page_content) ## default 3072 dimension embeddings
+        elif embeddingtype == 'spacy':
+            embedding = spacy_embedding().embed_documents(sub_docs.page_content)  ## default 96 dimension embeddings
         else:
-            embedding = generate_gpt4all(sub_docs.page_content)
+            embedding = generate_gpt4all().embed_documents(sub_docs.page_content) # default 384 dimension embeddings
 
 
         metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
@@ -112,7 +114,7 @@ def filter_matching_docs(query_embeds: str, top_chunks: int = 3, get_text: bool 
 
 # ##ONLY RUN IF YOU HAVEN'T CREATED THE INDEX ON PINECONE
 # #This represents the configuration used to deploy a pod-based index.
-# index_name = 'RagCP'                             # create a new index called "langchain"
+# index_name =  pinecone_index                            # create a new index called "langchain"
 
 # if index_name not in pc.list_indexes().names():
 #     print(f'Creating index {index_name}')
@@ -129,7 +131,8 @@ def filter_matching_docs(query_embeds: str, top_chunks: int = 3, get_text: bool 
 #      print(f'Index {index_name} already exists!')
 
 
-# # index_name = 'RagCP'
+##ONLY RUN IF YOU WANT TO DELETE THE INDEX ON PINECONE
+# # index_name = pinecone_index
 # # if index_name in pc.list_indexes().names():
 # #     print(f'Deleting index {index_name} ...')
 # #     pc.delete_index(index_name)

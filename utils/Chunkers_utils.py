@@ -11,6 +11,7 @@ from langchain_experimental.text_splitter import SemanticChunker
 from langchain.embeddings import GPT4AllEmbeddings
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 from dotenv import load_dotenv
+import os
 
 
 
@@ -61,12 +62,12 @@ def semantic(text):
 
 
 
-
+##EXAMPLE
 # with open('corpus.txt', 'r', encoding='utf-8') as file:
 #     content = file.read()
 #     print(content)
 
-# text = "Hello world. This is an example text to demonstrate sentence splitting. Enjoy using this script!"
+#text = "Hello world. This is an example text to demonstrate sentence splitting. Enjoy using this script!"
 # characters = character(text)
 
 # for idx, character in enumerate(characters):
