@@ -7,7 +7,7 @@ import openai
 import os
 from langchain.embeddings import HuggingFaceBgeEmbeddings
 from langchain.embeddings import HuggingFaceHubEmbeddings
-from langchain.embeddings import GPT4AllEmbeddings
+from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 import spacy
@@ -81,3 +81,22 @@ def generate_gpt4all(): # default 384 dimension embeddings
 # text= "How are you doin?"
 # embedding = generate_gpt4all().embed_query(text)
 # len(embedding)
+
+
+
+# def lc_openai_embedding(text): ## default 3072 dimension embeddings
+#      model="text-embedding-3-large" 
+#      embeddings = OpenAIEmbeddings(
+#             model = model,
+#             #dimensions = 1536,
+#             openai_api_key=openai_api_key).embed_documents(text)
+#      return embeddings
+
+
+# def lc_openai_embedding(text): ## default 3072 dimension embeddings
+#      model="text-embedding-3-large" 
+#      embeddings = OpenAIEmbeddings(
+#             model = model,
+#             #dimensions = 1536,
+#             openai_api_key=openai_api_key).embed_query(text)
+#      return embeddings
