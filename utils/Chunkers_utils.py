@@ -1,19 +1,18 @@
 #pip install nltk
 #pip install --quiet langchain_experimental langchain_openai
 
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_text_splitters import TokenTextSplitter
 import nltk
 from nltk.tokenize import sent_tokenize
 from langchain_experimental.text_splitter import SemanticChunker
-from langchain.embeddings import GPT4AllEmbeddings
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 import os
+from langchain.schema.document import Document
 
-
+##These splitter function works well with pdfloader 
 
 # Load environment variables from .env file
 load_dotenv('.env')
@@ -23,8 +22,8 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 def recursive(txt_doc):
     text_splitter = RecursiveCharacterTextSplitter(
         # Set a really small chunk size, just to show.
-        chunk_size = 1000,
-        chunk_overlap  = 100,
+        chunk_size = 100,
+        chunk_overlap  = 5,
         length_function = len,
         is_separator_regex = False,
     )
@@ -36,39 +35,49 @@ def recursive(txt_doc):
 def character(txt_doc):
     text_splitter = CharacterTextSplitter(
     separator = ".",
-    chunk_size = 800,
-    chunk_overlap = 80 #always less than chunk size
+    chunk_size = 200,
+    chunk_overlap = 20 #always less than chunk size
     )
-    characters = text_splitter.split_text(txt_doc)
+    characters = text_splitter.split_documents(txt_doc)
     return characters
 
 
 def sentence(txt_doc):
     nltk.download('punkt')
-    sentences = sent_tokenize(txt_doc)
-    return sentences
+    text = "".join([page.page_content for page in txt_doc])
+    print(len(text))
+    sentences = sent_tokenize(text)
+    split_docs = [Document(page_content=x) for x in sentences]
+    return split_docs
 
 
-def paragraphs(text):
-    paragraphs = text.split('\n\n')  # Assuming paragraphs are separated by two newlines
-    return paragraphs
+def paragraphs(txt_doc):
+    text = "".join([page.page_content for page in txt_doc])
+    print(len(text))
+    paragraphs = text.split('\n') # Assuming paragraphs are separated by two newlines
+    split_docs = [Document(page_content=x) for x in paragraphs]
+    return split_docs
 
-def semantic(text):
-    if not isinstance(text, str):
-        raise TypeError("The 'text' argument must be a string.")
+def semantic(txt_doc):
     semantic_splits = SemanticChunker(OpenAIEmbeddings(openai_api_key=openai_api_key))
-    docs = semantic_splits.create_documents([text])
+    docs = semantic_splits.split_documents(txt_doc)
     return docs
 
 
 
 ##EXAMPLE
-# with open('corpus.txt', 'r', encoding='utf-8') as file:
-#     content = file.read()
-#     print(content)
 
-#text = "Hello world. This is an example text to demonstrate sentence splitting. Enjoy using this script!"
-# characters = character(text)
+# text = pdf_to_text('../input/Constitution.pdf')
+# text1 = pdf_to_text_plumber('../input/Constitution.pdf')
+# text2 = pdfloader('../input/Constitution.pdf')
 
-# for idx, character in enumerate(characters):
-#     print(f"Character {idx+1}: {character}")
+
+# chunks = semantic(text)
+# len(chunks)
+# chunks
+
+
+# for index, chunk in enumerate(chunks):
+#     embedding= generate_gpt4all().embed_query(chunk.page_content)
+#     print(len(embedding))
+
