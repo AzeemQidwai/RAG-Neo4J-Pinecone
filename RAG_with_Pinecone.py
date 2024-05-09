@@ -39,7 +39,7 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 #Select Options
 retrieval_method = 'cosine' #What you defined at the time of pinecone creation
 chunker = 'semantic' ##recursive, semantic, sentence, character, paragraph
-embeddingtype = 'langchain'  #openai, HF, langchain, spacy, empty string will invoke gpt4all
+embeddingtype = 'openai'  #openai, HF, langchain, spacy, empty string will invoke gpt4all
 llmtype = 'gpt4' #llama2, llama3, Qwen, empty string will invoke Mixtral
 embedding_dimension = 1536  ##change to 384=gpt4all embedding,
 
@@ -65,11 +65,13 @@ else:
 ## Loading data to Pinecone
 upload_to_pinecone('Constitution', chunks, embeddingtype)
 
-#QuestionEmbeddings
+
+#### RETRIEVAL & GENERATION####
+
 
 ##load questions
 # Path to the JSON file
-file_path = 'output/questions.json'
+file_path = 'input/questions.json'
 
 # Open the file and load the data
 with open(file_path, 'r') as file:
@@ -79,7 +81,7 @@ print(data)
 questions = data['question']
 
 
-#### RETRIEVAL & GENERATION####
+
 
 
 question_responses = {}
