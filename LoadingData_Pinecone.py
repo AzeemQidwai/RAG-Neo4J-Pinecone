@@ -12,7 +12,6 @@ from pinecone import Pinecone
 import openai
 import os
 from dotenv import load_dotenv
-from utils import embeddings_utils, Chunkers_utils, pdf_utils, LLM_utils
 from utils.embeddings_utils import  lc_openai_embedding, spacy_embedding, openai_embedding, generate_huggingface_embeddings, generate_gpt4all
 
 
@@ -48,15 +47,15 @@ def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
     for index, sub_docs in enumerate(chunks):
         document_hash = hashlib.md5(sub_docs.page_content.encode("utf-8"))
         if embeddingtype == 'openai':
-            embedding = openai_embedding().embed_documents(sub_docs.page_content)  ## default 1536 dimension embeddings
+            embedding = openai_embedding().embed_query(sub_docs.page_content)  ## default 1536 dimension embeddings
         elif embeddingtype == 'HF':
-            embedding = generate_huggingface_embeddings().embed_documents(sub_docs.page_content)  ## default 768 dimension embeddings
+            embedding = generate_huggingface_embeddings().embed_query(sub_docs.page_content)  ## default 768 dimension embeddings
         elif embeddingtype == 'langchain':
-            embedding = lc_openai_embedding().embed_documents(sub_docs.page_content) ## default 3072 dimension embeddings
+            embedding = lc_openai_embedding().embed_query(sub_docs.page_content) ## default 3072 dimension embeddings
         elif embeddingtype == 'spacy':
-            embedding = spacy_embedding().embed_documents(sub_docs.page_content)  ## default 96 dimension embeddings
+            embedding = spacy_embedding().embed_query(sub_docs.page_content)  ## default 96 dimension embeddings
         else:
-            embedding = generate_gpt4all().embed_documents(sub_docs.page_content) # default 384 dimension embeddings
+            embedding = generate_gpt4all().embed_query(sub_docs.page_content) # default 384 dimension embeddings
 
 
         metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
