@@ -13,7 +13,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain.docstore.document import Document
-from langchain.llms import OpenAI
+from langchain_community.llms import OpenAI
 from utils.pdf_utils import pdf_to_text, pdf_to_text_plumber, pdfloader
 from utils.Chunkers_utils import recursive, character, sentence, paragraphs, semantic
 from utils.embeddings_utils import  lc_openai_embedding, openai_embedding, spacy_embedding, generate_huggingface_embeddings, generate_gpt4all
@@ -38,10 +38,10 @@ pinecone_index = os.getenv("Pinecone_INDEX")
 
 #Select Options
 retrieval_method = 'cosine' #What you defined at the time of pinecone creation
-chunker = 'semantic' ##recursive, semantic, sentence, character, paragraph
+chunker = 'recursive' ##recursive, semantic, sentence, character, paragraph
 embeddingtype = 'langchain'  #openai, HF, langchain, spacy, empty string will invoke gpt4all
 llmtype = 'gpt4' #llama2, llama3, Qwen, empty string will invoke Mixtral
-embedding_dimension = 1536  ##change to 384=gpt4all embedding,
+embedding_dimension = 3072  ##change to 384=gpt4all embedding,
 
 
 ###INDEXING###
@@ -63,13 +63,13 @@ else:
 
 
 ## Loading data to Pinecone
-upload_to_pinecone('Constitution', chunks, embeddingtype)
+upload_to_pinecone('input/Constitution.pdf', chunks, embeddingtype)
 
 #QuestionEmbeddings
 
 ##load questions
 # Path to the JSON file
-file_path = 'output/questions.json'
+file_path = 'input/questions.json'
 
 # Open the file and load the data
 with open(file_path, 'r') as file:

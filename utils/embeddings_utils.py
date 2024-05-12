@@ -5,10 +5,10 @@
 
 import openai
 import os
-from langchain.embeddings import HuggingFaceBgeEmbeddings
-from langchain.embeddings import HuggingFaceHubEmbeddings
+from langchain_community.embeddings import HuggingFaceHubEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.embeddings import GPT4AllEmbeddings
-from langchain_community.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 import spacy
 import numpy as np

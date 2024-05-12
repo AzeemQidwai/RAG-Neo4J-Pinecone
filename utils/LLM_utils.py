@@ -8,7 +8,7 @@ import os
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from langchain.chains import LLMChain
-from langchain.llms import HuggingFaceEndpoint
+from langchain_community.llms import HuggingFaceEndpoint
 
 
 load_dotenv('.env')
@@ -76,8 +76,8 @@ def infer_gpt4(prompt):
 
 ##HUGGINGFACE
 
-from getpass import getpass
-Huggingface_TOKEN = getpass()
+# from getpass import getpass
+# Huggingface_TOKEN = getpass()
 
 HF_token = os.getenv("Huggingface_TOKEN")
 

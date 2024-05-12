@@ -60,7 +60,7 @@ def upload_to_pinecone(file_name, chunks, embeddingtype) -> None:
 
 
         metadata = {"doc_name":file_name, "chunk": str(uuid.uuid4()), "text": sub_docs.page_content, "doc_index":index}
-        pc_index.upsert([(document_hash.hexdigest(), embedding, metadata)])
+        pc_index.upsert([(document_hash.hexdigest(), embedding[0], metadata)])
         print("{} ==> Done".format(index))
 
     print("Done!")
