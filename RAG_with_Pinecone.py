@@ -130,12 +130,12 @@ for question in questions:
 
 def save_to_json(question_responses, json_output_file):
     # Create a list to hold the results in the required structure
-    results = {"questions": [], "answers": [], "contexts": [], "ground_truth": []}
-    
+    results = {"question": [], "answer": [], "contexts": [], "ground_truth": []}
+
     # Iterate through the question_responses dictionary
     for question, data in question_responses.items():
-        results["questions"].append(question)
-        results["answers"].append(data['response'])
+        results["question"].append(question)
+        results["answer"].append(data['response'])
         results["contexts"].append(data['retrieved_content'])
         results["ground_truth"].append(ground_truth)
     
