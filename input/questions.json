@@ -2,12 +2,17 @@
     "question": [
         "How long is the term of office for the President in the Federation of Pakistan?", 
         "Which country's constitution is being discussed in the text?", 
-        "How many members can the Cabinet of the Provincial Assembly have according to the Constitution?"],
+        "How many members can the Cabinet of the Provincial Assembly have according to the Constitution?",
+        "According to the constitution who will be guilty of high treason?",
+        " How the constitution is securing child labour?"
+        ],
 
     "ground_truth": [
         "President of Pakistan term of office is 5 years",
         "Islamic Republic of Pakistan",
-        ""
+        "The total strength of the Cabinet,including Ministers of State, shall not exceed eleven percent of the total membership of Majlis-e-Shoora (Parliament).",
+        "Any person who abrogates or subverts or suspends or holds in abeyance, or attempts or conspires to abrogate or subvert or suspend or hold in abeyance, the Constitution by use of force or show of force or by any other unconstitutional meanshall be guilty of high treason.",
+        "No child below the age of fourteen years shall be engaged in any factory or mine or any other hazardous employment."
     ]
 
 }

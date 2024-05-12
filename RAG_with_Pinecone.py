@@ -77,9 +77,11 @@ file_path = 'input/questions.json'
 with open(file_path, 'r') as file:
     data = json.load(file)
 
-print(data)
+#print(data)
 questions = data['question']
-
+ground_truth = data['ground_truth']
+#print(questions)
+#print(ground_truth)
 
 
 
@@ -128,13 +130,14 @@ for question in questions:
 
 def save_to_json(question_responses, json_output_file):
     # Create a list to hold the results in the required structure
-    results = {"questions": [], "answers": [], "contexts": []}
-
+    results = {"questions": [], "answers": [], "contexts": [], "ground_truth": []}
+    
     # Iterate through the question_responses dictionary
     for question, data in question_responses.items():
         results["questions"].append(question)
         results["answers"].append(data['response'])
         results["contexts"].append(data['retrieved_content'])
+        results["ground_truth"].append(ground_truth)
     
     # Write the results to a JSON file
     with open(json_output_file, 'w') as file:
