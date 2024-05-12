@@ -1,18 +1,20 @@
 #pip install bert-score
 #pip install langchain openai ragas
 #pip install --upgrade openai (run only when you get this error: AttributeError: module 'openai' has no attribute 'OpenAI' )
+#pip install pandas openpyxl
 
 import ragas
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics import faithfulness, context_precision, context_recall, answer_similarity
+from ragas.metrics import answer_correctness, answer_relevancy, faithfulness, context_precision, context_recall, answer_similarity
 import json
 import pandas as pd
 import os
 from dotenv import load_dotenv
+import pandas as pd
 
-# Load environment variables from .env file
 load_dotenv('.env')
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 #Structure of the json file
 # {
@@ -26,10 +28,8 @@ load_dotenv('.env')
 # }
 
 
-
-openai_api_key = os.getenv("OPENAI_API_KEY")
 # Path to the JSON file
-file_path = 'output/qa_results_pc.json'
+file_path = 'output/qa_results_simpleneo4j_langchain_cosine_recursive_gpt4.json'
 #file_path = 'output/qa_results_neo4j.json'
 
 # Open the file and load the data
@@ -38,17 +38,46 @@ with open(file_path, 'r') as file:
 
 print(data)
 
+
+# Process existing contexts to split each context into sentences
+updated_contexts = []
+for context in data.get('contexts', []):
+    # Split context into multiple sentences based on period (".")
+    sentences = [sentence.strip() for sentence in context.split('.') if sentence.strip()]
+    updated_contexts.append(sentences)
+
+
+data['contexts'] = updated_contexts
+
+####Only run for Neo4j###############################
+
+data['ground_truth'] = data['ground_truth'][0]
+
+#####################################################
+
+# Create a new dictionary with the desired key order
+updated_data = {
+    'question': data.get('question', []),
+    'answer': data.get('answer', []),
+    'contexts': data.get('contexts', []),
+    'ground_truth': data.get('ground_truth', [])
+}
+data=updated_data
+
 dataset = Dataset.from_dict(data)
 
-score = evaluate(dataset)
-score.to_pandas()
 
-
-score1 = evaluate(dataset,metrics=[answer_similarity, 
+score = evaluate(dataset,metrics=[answer_similarity, 
                                    faithfulness, 
                                    context_precision,
-                                   context_recall])
-score1.to_pandas()
+                                   context_recall,
+                                   answer_correctness,
+                                   answer_relevancy])
+df = score.to_pandas()
+
+# Write the DataFrame to an Excel file
+df.to_excel('output/scores/evaluation_scores.xlsx', index=False)
+
 
 
 
