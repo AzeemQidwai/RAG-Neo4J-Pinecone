@@ -3,18 +3,6 @@
 #pip install --upgrade openai (run only when you get this error: AttributeError: module 'openai' has no attribute 'OpenAI' )
 #pip install pandas openpyxl
 
-import ragas
-from datasets import Dataset
-from ragas import evaluate
-from ragas.metrics import answer_correctness, answer_relevancy, faithfulness, context_precision, context_recall, answer_similarity
-import json
-import pandas as pd
-import os
-from dotenv import load_dotenv
-import pandas as pd
-
-load_dotenv('.env')
-openai_api_key = os.getenv("OPENAI_API_KEY")
 
 #Structure of the json file
 # {
@@ -28,55 +16,76 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 # }
 
 
-# Path to the JSON file
-file_path = 'output/qa_results_simpleneo4j_langchain_cosine_recursive_gpt4.json'
-#file_path = 'output/qa_results_neo4j.json'
+import ragas
+from datasets import Dataset
+from ragas import evaluate
+from ragas.metrics import answer_correctness, answer_relevancy, faithfulness, context_precision, context_recall, answer_similarity
+import json
+import pandas as pd
+import os
+from dotenv import load_dotenv
+import pandas as pd
+from glob import glob
 
-# Open the file and load the data
-with open(file_path, 'r') as file:
-    data = json.load(file)
-
-print(data)
-
-
-# Process existing contexts to split each context into sentences
-updated_contexts = []
-for context in data.get('contexts', []):
-    # Split context into multiple sentences based on period (".")
-    sentences = [sentence.strip() for sentence in context.split('.') if sentence.strip()]
-    updated_contexts.append(sentences)
+load_dotenv('.env')
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 
-data['contexts'] = updated_contexts
+# Directory containing JSON files
+input_dir = 'output'
+output_dir = 'output/scores'
 
-####Only run for Neo4j###############################
+# Ensure the output directory exists
+os.makedirs(output_dir, exist_ok=True)
 
-data['ground_truth'] = data['ground_truth'][0]
+# Find all JSON files in the output directory
+json_files = glob(os.path.join(input_dir, '*.json'))
 
-#####################################################
+for file_path in json_files:
+    # Open the file and load the data
+    with open(file_path, 'r') as file:
+        data = json.load(file)
 
-# Create a new dictionary with the desired key order
-updated_data = {
-    'question': data.get('question', []),
-    'answer': data.get('answer', []),
-    'contexts': data.get('contexts', []),
-    'ground_truth': data.get('ground_truth', [])
-}
-data=updated_data
+    print(data)
 
-dataset = Dataset.from_dict(data)
+    # Process existing contexts to split each context into sentences
+    updated_contexts = []
+    for context in data.get('contexts', []):
+        # Split context into multiple sentences based on period (".")
+        sentences = [sentence.strip() for sentence in context.split('.') if sentence.strip()]
+        updated_contexts.append(sentences)
+
+    data['contexts'] = updated_contexts
 
 
-score = evaluate(dataset,metrics=[answer_similarity, 
-                                   faithfulness, 
-                                   context_precision,
-                                   context_recall,
-                                   answer_correctness,
-                                   answer_relevancy])
-df = score.to_pandas()
+    data['ground_truth'] = data['ground_truth'][0]
 
-# Write the DataFrame to an Excel file
-df.to_excel('output/scores/evaluation_scores.xlsx', index=False)
+
+    # Create a new dictionary with the desired key order
+    updated_data = {
+        'question': data.get('question', []),
+        'answer': data.get('answer', []),
+        'contexts': data.get('contexts', []),
+        'ground_truth': data.get('ground_truth', [])
+    }
+    data = updated_data
+
+    dataset = Dataset.from_dict(data)
+
+    # Evaluate the dataset using some predefined metrics
+    score = evaluate(dataset, metrics=[
+        answer_similarity, 
+        faithfulness, 
+        context_precision,
+        context_recall,
+        answer_correctness,
+        answer_relevancy
+    ])
+    df = score.to_pandas()
+
+    # Write the DataFrame to an Excel file with the same base name as the JSON file
+    output_excel_path = os.path.join(output_dir, os.path.basename(file_path).replace('.json', '_scores.xlsx'))
+    df.to_excel(output_excel_path, index=False)
 
 
 
